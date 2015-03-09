@@ -1,0 +1,33 @@
+// Note: this is a project in multi-project workspace
+
+sourceSets.main {
+    java.srcDirs project.projectDir.name
+    resources.srcDirs project.projectDir.name
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    compile fileTree(dir: './libs', includes: ['*.jar'])
+    provided fileTree(dir: './libs', includes: ['*.jar'])
+}
+
+jar {
+    manifest {
+        attributes(
+                "FMLCorePlugin": "tsuteto.mcmp.core.asm.McmpCorePlugin",
+                "FMLCorePluginContainsFMLMod": "true"
+        )
+    }
+    from {
+        configurations.provided.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+version = "RC-MC1.7.10"
+archivesBaseName = "MCMP-1"
