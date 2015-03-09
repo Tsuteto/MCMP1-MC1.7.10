@@ -1,0 +1,36 @@
+tile.mcmp1:dubbingMachine.name=カセットレコーダー
+
+item.mcmp1:mcmp1.name=MCMP-1
+item.mcmp1:cassetteChanger.name=カセットチェンジャー
+item.mcmp1:cassetteNormal.black.name=カセットテープ ブラック
+item.mcmp1:cassetteNormal.red.name=カセットテープ レッド
+item.mcmp1:cassetteNormal.green.name=カセットテープ グリーン
+item.mcmp1:cassetteNormal.brown.name=カセットテープ ブラウン
+item.mcmp1:cassetteNormal.blue.name=カセットテープ ブルー
+item.mcmp1:cassetteNormal.purple.name=カセットテープ パープル
+item.mcmp1:cassetteNormal.cyan.name=カセットテープ シアン
+item.mcmp1:cassetteNormal.silver.name=カセットテープ シルバー
+item.mcmp1:cassetteNormal.gray.name=カセットテープ グレー
+item.mcmp1:cassetteNormal.pink.name=カセットテープ ピンク
+item.mcmp1:cassetteNormal.lime.name=カセットテープ ライム
+item.mcmp1:cassetteNormal.yellow.name=カセットテープ イエロー
+item.mcmp1:cassetteNormal.lightBlue.name=カセットテープ ライトブルー
+item.mcmp1:cassetteNormal.magenta.name=カセットテープ マゼンタ
+item.mcmp1:cassetteNormal.orange.name=カセットテープ オレンジ
+item.mcmp1:cassetteNormal.white.name=カセットテープ
+
+container.mcmp1.Recorder=カセットレコーダー
+container.mcmp1.Changer=カセットチェンジャー
+
+mcmp1.playing=再生中: %s
+mcmp1.fileNotFound=*見つかりません* %s
+mcmp1.recordNotFound=*存在しません* %s
+mcmp1.numSongs=%d%s入り
+mcmp1.song=曲
+mcmp1.songs=曲
+mcmp1.changerName.label=ラベル
+
+mcmp1.update.server=MCMP-1が%1$sに更新しました! ダウンロード: %2$s
+mcmp1.update.client=§eMCMP-1§rが§a%1$s§rに更新しました! %2$s
+mcmp1.update.link=§nこちらからダウンロード§r
+

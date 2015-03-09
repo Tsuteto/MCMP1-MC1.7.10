@@ -1,0 +1,4 @@
+{
+   "play": {"category": "master","sounds": [{"name": "mcmp1:play","stream": false}]},
+   "stop": {"category": "master","sounds": [{"name": "mcmp1:stop","stream": false}]}
+}

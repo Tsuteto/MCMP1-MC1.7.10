@@ -1,0 +1,35 @@
+tile.mcmp1:dubbingMachine.name=Cassette Recorder
+
+item.mcmp1:mcmp1.name=MCMP-1
+item.mcmp1:cassetteChanger.name=Cassette Changer
+item.mcmp1:cassetteNormal.black.name=Cassette Tape Black
+item.mcmp1:cassetteNormal.red.name=Cassette Tape Red
+item.mcmp1:cassetteNormal.green.name=Cassette Tape Green
+item.mcmp1:cassetteNormal.brown.name=Cassette Tape Brown
+item.mcmp1:cassetteNormal.blue.name=Cassette Tape Blue
+item.mcmp1:cassetteNormal.purple.name=Cassette Tape Purple
+item.mcmp1:cassetteNormal.cyan.name=Cassette Tape Cyan
+item.mcmp1:cassetteNormal.silver.name=Cassette Tape Silver
+item.mcmp1:cassetteNormal.gray.name=Cassette Tape Gray
+item.mcmp1:cassetteNormal.pink.name=Cassette Tape Pink
+item.mcmp1:cassetteNormal.lime.name=Cassette Tape Lime
+item.mcmp1:cassetteNormal.yellow.name=Cassette Tape Yellow
+item.mcmp1:cassetteNormal.lightBlue.name=Cassette Tape Light Blue
+item.mcmp1:cassetteNormal.magenta.name=Cassette Tape Magenta
+item.mcmp1:cassetteNormal.orange.name=Cassette Tape Orange
+item.mcmp1:cassetteNormal.white.name=Cassette Tape
+
+container.mcmp1.Recorder=Cassette Recorder
+container.mcmp1.Changer=Cassette Changer
+
+mcmp1.playing=Playing: %s
+mcmp1.fileNotFound=*Not found* %s
+mcmp1.recordNotFound=*Not found* %s
+mcmp1.numSongs=Contains %d %s
+mcmp1.song=song
+mcmp1.songs=songs
+mcmp1.changerName.label=Label
+
+mcmp1.update.server=MCMP-1 has been updated to %1$s, available at %2$s
+mcmp1.update.client=§eMCMP-1§r has been updated to §a%1$s§r! %2$s
+mcmp1.update.link=§nDownload here§r
