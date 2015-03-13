@@ -1,17 +1,15 @@
 package tsuteto.mcmp.changer;
 
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class GuiChanger extends GuiContainer
@@ -81,8 +79,8 @@ public class GuiChanger extends GuiContainer
         String lblChangerName = StatCollector.translateToLocal("mcmp1.changerName.label");
         int width = fontRendererObj.getStringWidth(lblChangerName);
         fontRendererObj.drawString(lblChangerName, var5 + 65 - width, var6 + 76, 0x404040);
-        ObfuscationReflectionHelper.setPrivateValue(GuiTextField.class, this.textBoxChangerName, var5 + 68, "b", "xPosition");
-        ObfuscationReflectionHelper.setPrivateValue(GuiTextField.class, this.textBoxChangerName, var6 + 74, "c", "yPosition");
+        ObfuscationReflectionHelper.setPrivateValue(GuiTextField.class, this.textBoxChangerName, var5 + 68, "field_146209_f", "xPosition");
+        ObfuscationReflectionHelper.setPrivateValue(GuiTextField.class, this.textBoxChangerName, var6 + 74, "field_146210_g", "yPosition");
         this.textBoxChangerName.drawTextBox();
     }
 
