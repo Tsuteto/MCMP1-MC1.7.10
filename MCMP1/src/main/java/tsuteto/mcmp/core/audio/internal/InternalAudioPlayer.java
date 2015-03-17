@@ -144,7 +144,7 @@ public class InternalAudioPlayer
 
     public boolean playing()
     {
-        return this.soundManager.isSoundPlaying(playingRecord) || this.soundSystem.playing(bgmIdentifiedName);
+        return this.soundManager.isSoundPlaying(playingRecord);
     }
 
     public boolean isReady()

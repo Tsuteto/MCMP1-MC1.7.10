@@ -44,7 +44,7 @@ import tsuteto.mcmp.recorder.TileEntityRecorder;
 @Mod(
         modid = Mcmp1Core.modId,
         name = "MCMP-1",
-        version = "1.3.1-MC1.7.10",
+        version = "1.3.2-MC1.7.10",
         acceptedMinecraftVersions = "[1.7.10,1.8)"
 )
 public class Mcmp1Core extends McmpBaseMod
