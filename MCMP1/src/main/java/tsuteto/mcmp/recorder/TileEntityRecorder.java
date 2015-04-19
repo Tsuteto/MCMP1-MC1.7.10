@@ -6,14 +6,13 @@ import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.Constants;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.cassettetape.ItemCassetteTape.Source;
 import tsuteto.mcmp.core.audio.McmpSoundManager;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 import tsuteto.mcmp.core.network.AbstractPacket;
 import tsuteto.mcmp.core.song.MediaSongEntry;
 import tsuteto.mcmp.core.song.SongManager;
@@ -365,7 +364,7 @@ public class TileEntityRecorder extends TileEntity implements IInventory
      */
     private boolean canDub()
     {
-        if (machineContents[0] == null || !(machineContents[0].getItem() instanceof ItemCassetteTape))
+        if (machineContents[0] == null || !(machineContents[0].getItem() instanceof IMcmpMedia))
         {
             return false;
         }
@@ -410,7 +409,7 @@ public class TileEntityRecorder extends TileEntity implements IInventory
         }
         ItemStack newItemstack = machineContents[0].copy();
         newItemstack.stackSize = 1;
-        ItemCassetteTape.setSong(newItemstack, newEntry);
+        ((IMcmpMedia)newItemstack.getItem()).setSong(newItemstack, newEntry);
 
         if (machineContents[2] == null)
         {

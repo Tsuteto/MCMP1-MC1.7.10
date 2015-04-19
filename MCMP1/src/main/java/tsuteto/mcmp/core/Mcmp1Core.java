@@ -2,10 +2,7 @@ package tsuteto.mcmp.core;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModMetadata;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -22,20 +19,25 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.util.EnumHelper;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 import org.apache.logging.log4j.Level;
 import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.changer.ItemChanger;
 import tsuteto.mcmp.changer.PacketChangerRename;
 import tsuteto.mcmp.changer.PacketChangerState;
 import tsuteto.mcmp.core.audio.McmpSoundManager;
+import tsuteto.mcmp.core.audio.internal.SoundSystemManager;
 import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
 import tsuteto.mcmp.core.mcmpplayer.McmpPlayerManager;
+import tsuteto.mcmp.core.mcmpplayer.PacketMcmpPlayerBlockCtl;
 import tsuteto.mcmp.core.mcmpplayer.PacketMcmpPlayerCtl;
 import tsuteto.mcmp.core.network.PacketManager;
 import tsuteto.mcmp.core.registry.BlockRegister;
 import tsuteto.mcmp.core.registry.ItemRegister;
 import tsuteto.mcmp.core.util.McmpLog;
 import tsuteto.mcmp.core.util.UpdateNotification;
+import tsuteto.mcmp.deck.BlockDeck;
+import tsuteto.mcmp.deck.TileEntityDeck;
 import tsuteto.mcmp.mcmp1.ItemMCMP1;
 import tsuteto.mcmp.recorder.BlockRecorder;
 import tsuteto.mcmp.recorder.PacketRecorderCtl;
@@ -44,7 +46,7 @@ import tsuteto.mcmp.recorder.TileEntityRecorder;
 @Mod(
         modid = Mcmp1Core.modId,
         name = "MCMP-1",
-        version = "1.3.2-MC1.7.10",
+        version = "2.0.0-MC1.7.10",
         acceptedMinecraftVersions = "[1.7.10,1.8)"
 )
 public class Mcmp1Core extends McmpBaseMod
@@ -67,12 +69,13 @@ public class Mcmp1Core extends McmpBaseMod
     public static Item itemChanger;
     public static Block blockRecorderIdle;
     public static Block blockRecorderActive;
+    public static Block blockDeckIdle;
+    public static Block blockDeckActive;
 
     // Used in core mod
     public static final MusicTicker.MusicType MUSIC_TYPE_MCMP1;
 
     public static UpdateNotification update = null;
-    public McmpSoundManager sndManager;
 
     static
     {
@@ -81,11 +84,6 @@ public class Mcmp1Core extends McmpBaseMod
                 new Object[]{new ResourceLocation("mcmp1", "dummy"), Integer.MAX_VALUE, Integer.MAX_VALUE});
 
         McmpLog.modId = "MCMP-1";
-    }
-
-    public Mcmp1Core()
-    {
-        sndManager = McmpSoundManager.getInstance();
     }
 
     @Mod.EventHandler
@@ -110,6 +108,9 @@ public class Mcmp1Core extends McmpBaseMod
         {
             cfg.save();
         }
+
+        // Initialize Sound System
+        SoundSystemManager.init();
 
         // Update check!
         if (updateCheck)
@@ -149,10 +150,25 @@ public class Mcmp1Core extends McmpBaseMod
                 .setStepSound(Block.soundTypeMetal)
                 .setLightLevel(0.75F);
 
+        blockDeckIdle = BlockRegister.of("McmpDeck", new BlockDeck(false))
+                .withResource("cassetteDeck")
+                .register()
+                .setHardness(3.5F)
+                .setStepSound(Block.soundTypeMetal)
+                .setCreativeTab(CreativeTabs.tabDecorations);
+
+        blockDeckActive = BlockRegister.of("McmpDeckActive", new BlockDeck(true))
+                .withResource("cassetteDeck")
+                .register()
+                .setHardness(3.5F)
+                .setStepSound(Block.soundTypeMetal)
+                .setLightLevel(0.75F);
+
         /*
          * Register tile entities
          */
         GameRegistry.registerTileEntity(TileEntityRecorder.class, "McmpRecorder");
+        GameRegistry.registerTileEntity(TileEntityDeck.class, "McmpDeck");
 
     }
 
@@ -176,7 +192,8 @@ public class Mcmp1Core extends McmpBaseMod
                 .registerPacket(PacketRecorderCtl.class)
                 .registerPacket(PacketChangerState.class)
                 .registerPacket(PacketChangerRename.class)
-                .registerPacket(PacketMcmpPlayerCtl.class);
+                .registerPacket(PacketMcmpPlayerCtl.class)
+                .registerPacket(PacketMcmpPlayerBlockCtl.class);
 
         /*
          * Recipes
@@ -202,7 +219,7 @@ public class Mcmp1Core extends McmpBaseMod
                 "X*X",
                 "---",
                 Character.valueOf('X'), Items.iron_ingot,
-                Character.valueOf('*'), Items.diamond,
+                Character.valueOf('*'), Items.redstone,
                 Character.valueOf('-'), Items.repeater);
 
         // Cassette Changer
@@ -233,6 +250,22 @@ public class Mcmp1Core extends McmpBaseMod
         GameRegistry.addShapelessRecipe(new ItemStack(itemCassetteNormal),
                 new ItemStack(itemCassetteNormal, 1, 0x7FFF),
                 new ItemStack(Items.dye, 1, 15));
+
+        // MCMP-D01
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(blockDeckIdle),
+                "XXX",
+                "XZX",
+                "YYY",
+                'X', Blocks.planks,
+                'Y', Items.repeater,
+                'Z', "dyeBlue"));
+    }
+
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event)
+    {
+        // Retrieve all files in the song directory
+        McmpSoundManager.INSTANCE.loadSongs();
     }
 
     @Mod.EventHandler
@@ -248,7 +281,7 @@ public class Mcmp1Core extends McmpBaseMod
     @Mod.EventHandler
     public void onServerStopping(FMLServerStoppingEvent event)
     {
-        this.sndManager.stop();
+        McmpSoundManager.INSTANCE.stopAllSounds();
     }
 
     @Override
@@ -256,12 +289,12 @@ public class Mcmp1Core extends McmpBaseMod
     {
         if (guiscreen != null)
         {
-            if (guiscreen instanceof GuiMainMenu && sndManager.playing())
+            for (ItemMcmpPlayer mcmpPlayer : McmpPlayerManager.getPlayerList())
             {
-            }
-            else
-            {
-                for (ItemMcmpPlayer mcmpPlayer : McmpPlayerManager.getPlayerList())
+                if (guiscreen instanceof GuiMainMenu && mcmpPlayer.getAudioPlayer().playing())
+                {
+                }
+                else
                 {
                     mcmpPlayer.inInventory = true;
                 }

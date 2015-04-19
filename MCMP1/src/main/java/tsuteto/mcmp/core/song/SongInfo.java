@@ -1,12 +1,12 @@
 package tsuteto.mcmp.core.song;
 
-import java.io.File;
+import tsuteto.mcmp.core.audio.SoundSystemType;
 
-import tsuteto.mcmp.core.audio.EnumSoundSystemType;
+import java.io.File;
 
 public class SongInfo
 {
     public File file;
     public String songName;
-    public EnumSoundSystemType playerType;
+    public SoundSystemType playerType;
 }

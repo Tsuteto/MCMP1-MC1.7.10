@@ -1,0 +1,38 @@
+{
+   "harp+2": {"category": "music", "sounds": ["mcmps01:harp+2"]},
+   "harp+1": {"category": "music", "sounds": ["mcmps01:harp+1"]},
+   "harp+0": {"category": "music", "sounds": ["minecraft:note/harp"]},
+   "harp-1": {"category": "music", "sounds": ["mcmps01:harp-1"]},
+   "harp-2": {"category": "music", "sounds": ["mcmps01:harp-2"]},
+
+   "bassattack+2": {"category": "music", "sounds": ["mcmps01:bassattack+2"]},
+   "bassattack+1": {"category": "music", "sounds": ["mcmps01:bassattack+1"]},
+   "bassattack+0": {"category": "music", "sounds": ["minecraft:note/bassattack"]},
+   "bassattack-1": {"category": "music", "sounds": ["mcmps01:bassattack-1"]},
+   "bassattack-2": {"category": "music", "sounds": ["mcmps01:bassattack-2"]},
+
+   "bass": {"category": "music", "sounds": ["minecraft:note/bass"]},
+   "bd": {"category": "music", "sounds": ["minecraft:note/bd"]},
+   "hat": {"category": "music", "sounds": ["minecraft:note/hat"]},
+   "pling": {"category": "music", "sounds": ["minecraft:note/pling"]},
+   "snare": {"category": "music", "sounds": ["minecraft:note/snare"]},
+
+   "harp+2_r": {"category": "record", "sounds": ["mcmps01:harp+2"]},
+   "harp+1_r": {"category": "record", "sounds": ["mcmps01:harp+1"]},
+   "harp+0_r": {"category": "record", "sounds": ["minecraft:note/harp"]},
+   "harp-1_r": {"category": "record", "sounds": ["mcmps01:harp-1"]},
+   "harp-2_r": {"category": "record", "sounds": ["mcmps01:harp-2"]},
+
+   "bassattack+2_r": {"category": "record", "sounds": ["mcmps01:bassattack+2"]},
+   "bassattack+1_r": {"category": "record", "sounds": ["mcmps01:bassattack+1"]},
+   "bassattack+0_r": {"category": "record", "sounds": ["minecraft:note/bassattack"]},
+   "bassattack-1_r": {"category": "record", "sounds": ["mcmps01:bassattack-1"]},
+   "bassattack-2_r": {"category": "record", "sounds": ["mcmps01:bassattack-2"]},
+
+   "bass_r": {"category": "record", "sounds": ["minecraft:note/bass"]},
+   "bd_r": {"category": "record", "sounds": ["minecraft:note/bd"]},
+   "hat_r": {"category": "record", "sounds": ["minecraft:note/hat"]},
+   "pling_r": {"category": "record", "sounds": ["minecraft:note/pling"]},
+   "snare_r": {"category": "record", "sounds": ["minecraft:note/snare"]}
+
+}

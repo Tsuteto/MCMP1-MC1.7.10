@@ -1,8 +1,9 @@
-package tsuteto.mcmp.core.mcmpplayer;
+package tsuteto.mcmp.core.mcmpplayer.data;
 
 public class PlayPosition {
 	public int slotPlaying;
 	public int playingInStack;
+	public boolean changed = false;
 	
 	public String toString()
 	{

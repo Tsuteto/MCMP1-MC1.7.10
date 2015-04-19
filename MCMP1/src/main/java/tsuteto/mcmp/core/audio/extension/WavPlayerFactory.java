@@ -1,18 +1,30 @@
 package tsuteto.mcmp.core.audio.extension;
 
+import tsuteto.mcmp.core.audio.McmpPlayerFactory;
+import tsuteto.mcmp.core.audio.param.IMcmpSound;
+
 import java.io.File;
+import java.io.InputStream;
 
-public class WavPlayerFactory
+public class WavPlayerFactory implements McmpPlayerFactory
 {
-//    public static WavPlayer playWav(File wav) throws Exception
-//    {
-//        return playWav(new BufferedInputStream(new FileInputStream(wav)));
-//    }
-
-    public static WavPlayer playWav(final File stream) throws Exception
+    @Override
+    public ExternalAudioPlayer play(InputStream stream, IMcmpSound soundParams) throws Exception
     {
-        final WavPlayer player = new WavPlayer(stream);
+        WavPlayer player = new WavPlayer(stream);
+        this.doPlay(player);
+        return player;
+    }
 
+    public WavPlayer play(final File file, IMcmpSound soundParams) throws Exception
+    {
+        WavPlayer player = new WavPlayer(file);
+        this.doPlay(player);
+        return player;
+    }
+
+    private void doPlay(final WavPlayer player)
+    {
         Thread playingThread = new Thread() {
             public void run()
             {
@@ -28,6 +40,5 @@ public class WavPlayerFactory
         };
         playingThread.setName("MCMP-1 WAV Player");
         playingThread.start();
-        return player;
     }
 }

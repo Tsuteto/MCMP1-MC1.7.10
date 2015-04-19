@@ -23,8 +23,7 @@ public class ItemMCMP1 extends ItemMcmpPlayer
     public ItemMCMP1()
     {
         super();
-
-        playAction = new SongSelectorRandom(this);
+        playAction = new SongSelectorRandom(this.controller);
     }
 
     /**
@@ -33,21 +32,21 @@ public class ItemMCMP1 extends ItemMcmpPlayer
     @Override
     public ItemStack onItemRightClick(ItemStack itemstack, World world, EntityPlayer player)
     {
-        if (world.isRemote)
-        {
-            isPlaying ^= true;
-        }
-        McmpLog.debug("playing: %s", isPlaying);
+        McmpLog.debug("playing: %s on %s", this.isPlayerPlaying(), player.worldObj.isRemote ? "client" : "server");
 
-        if (isPlaying)
-        {
-            player.worldObj.playSoundAtEntity(player, getSoundOnPlay(), 1.0F, 1.0F);
-        }
-        else
+        if (this.isPlayerPlaying())
         {
             player.worldObj.playSoundAtEntity(player, getSoundOnStop(), 1.0F, 1.0F);
             stop(itemstack, player);
             setNoInterval();
+        }
+        else
+        {
+            player.worldObj.playSoundAtEntity(player, getSoundOnPlay(), 1.0F, 1.0F);
+            if (player.worldObj.isRemote)
+            {
+                this.setPlayerPlaying(true);
+            }
         }
         return itemstack;
     }
@@ -63,10 +62,10 @@ public class ItemMCMP1 extends ItemMcmpPlayer
             return;
         }
 
-        boolean sndPlaying = sndMgr.playing();
+        boolean sndPlaying = controller.getAudioPlayer().playing();
         EntityPlayer player = (EntityPlayer) entity;
 
-        if (isPlaying && !sndPlaying)
+        if (this.isPlayerPlaying() && !sndPlaying)
         {
             if (timeInterval > 0)
             {
@@ -74,7 +73,7 @@ public class ItemMCMP1 extends ItemMcmpPlayer
             }
             else
             {
-                ItemStack nextSong = playAction.selectSongToPlay(itemstack, player.inventory);
+                ItemStack nextSong = playAction.selectSongToPlay(itemstack, player.inventory.mainInventory);
                 if (nextSong != null)
                 {
                     play(itemstack, player, nextSong);
@@ -82,7 +81,7 @@ public class ItemMCMP1 extends ItemMcmpPlayer
                 else
                 {
                     stop(itemstack, player);
-                    playPos.slotPlaying = 0;
+                    controller.playPos.slotPlaying = 0;
                 }
                 timeInterval = 20;
             }

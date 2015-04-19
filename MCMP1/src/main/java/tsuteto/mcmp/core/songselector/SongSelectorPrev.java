@@ -1,31 +1,29 @@
 package tsuteto.mcmp.core.songselector;
 
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.changer.InventoryChanger;
 import tsuteto.mcmp.changer.ItemChanger;
-import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPortablePlayerController;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 import tsuteto.mcmp.core.util.McmpLog;
 
 public class SongSelectorPrev extends SongSelector
 {
     StringBuffer trace = new StringBuffer();
 
-    public SongSelectorPrev(ItemMcmpPlayer player)
+    public SongSelectorPrev(McmpPortablePlayerController controller)
     {
-        super(player);
+        super(controller);
     }
 
     @Override
-    public ItemStack selectSong(InventoryPlayer playerInv)
+    public ItemStack selectSong(ItemStack[] inventory)
     {
         this.trace = new StringBuffer();
-        ItemStack[] inventory = playerInv.mainInventory;
 
-        int slotPlaying = player.playPos.slotPlaying;
-        int playingInStack = player.playPos.playingInStack;
+        int slotPlaying = controller.playPos.slotPlaying;
+        int playingInStack = controller.playPos.playingInStack;
 
         ItemStack itemstack = inventory[slotPlaying];
         int c = inventory.length + 1;
@@ -68,9 +66,10 @@ public class SongSelectorPrev extends SongSelector
         }
         finally
         {
-            player.playPos.slotPlaying = slotPlaying;
-            player.playPos.playingInStack = playingInStack;
-            
+            controller.playPos.slotPlaying = slotPlaying;
+            controller.playPos.playingInStack = playingInStack;
+            controller.playPos.changed = true;
+
         	McmpLog.debug(trace.toString());
         }
     }
@@ -101,7 +100,7 @@ public class SongSelectorPrev extends SongSelector
                 if (itemstack != null && playingInStack >= 1)
                 {
                     Item item = itemstack.getItem();
-                    if (item instanceof ItemCassetteTape && ItemCassetteTape.getSong(itemstack) != null)
+                    if (item instanceof IMcmpMedia && ((IMcmpMedia)item).getSong(itemstack) != null)
                     {
                         slotPlaying = c;
                         return itemstack;

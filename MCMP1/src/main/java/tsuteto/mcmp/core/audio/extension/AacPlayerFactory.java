@@ -1,18 +1,21 @@
 package tsuteto.mcmp.core.audio.extension;
 
+import tsuteto.mcmp.core.audio.McmpPlayerFactory;
+import tsuteto.mcmp.core.audio.param.IMcmpSound;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-public class AacPlayerFactory
+public class AacPlayerFactory implements McmpPlayerFactory
 {
-    public static AacPlayer playAac(File mp4) throws Exception
+    public AacPlayer play(File mp4, IMcmpSound soundParams) throws Exception
     {
-        return playAac(new BufferedInputStream(new FileInputStream(mp4)));
+        return play(new BufferedInputStream(new FileInputStream(mp4)), soundParams);
     }
 
-    public static AacPlayer playAac(final InputStream stream) throws Exception
+    public AacPlayer play(final InputStream stream, IMcmpSound soundParams) throws Exception
     {
         final AacPlayer player = new AacPlayer(stream);
 

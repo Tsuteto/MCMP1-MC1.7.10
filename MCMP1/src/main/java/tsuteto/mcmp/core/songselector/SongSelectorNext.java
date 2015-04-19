@@ -1,37 +1,35 @@
 package tsuteto.mcmp.core.songselector;
 
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.changer.InventoryChanger;
 import tsuteto.mcmp.changer.ItemChanger;
-import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPlayerControllerBase;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 import tsuteto.mcmp.core.util.McmpLog;
 
 public class SongSelectorNext extends SongSelector
 {
     StringBuffer trace = new StringBuffer();
 
-    public SongSelectorNext(ItemMcmpPlayer player)
+    public SongSelectorNext(McmpPlayerControllerBase controller)
     {
-        super(player);
+        super(controller);
     }
 
     /**
      * Finds next song in a player inventory
      *
-     * @param playerInv
+     * @param inventory
      * @return
      */
     @Override
-    public ItemStack selectSong(InventoryPlayer playerInv)
+    public ItemStack selectSong(ItemStack[] inventory)
     {
         this.trace = new StringBuffer();
-        ItemStack[] inventory = playerInv.mainInventory;
 
-        int slotPlaying = player.playPos.slotPlaying;
-        int playingInStack = player.playPos.playingInStack;
+        int slotPlaying = controller.playPos.slotPlaying;
+        int playingInStack = controller.playPos.playingInStack;
         int c = inventory.length + 1;
 
         ItemStack itemstack = inventory[slotPlaying];
@@ -71,8 +69,9 @@ public class SongSelectorNext extends SongSelector
         }
         finally
         {
-            player.playPos.slotPlaying = slotPlaying;
-            player.playPos.playingInStack = playingInStack;
+            controller.playPos.slotPlaying = slotPlaying;
+            controller.playPos.playingInStack = playingInStack;
+            controller.playPos.changed = true;
             
         	McmpLog.debug(trace.toString());
         }
@@ -106,7 +105,7 @@ public class SongSelectorNext extends SongSelector
                 if (itemstack != null && playingInStack <= itemstack.stackSize)
                 {
                     Item item = itemstack.getItem();
-                    if (item instanceof ItemCassetteTape && ItemCassetteTape.getSong(itemstack) != null)
+                    if (item instanceof IMcmpMedia && ((IMcmpMedia)item).getSong(itemstack) != null)
                     {
                         slotPlaying = c;
                         return itemstack;

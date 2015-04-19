@@ -24,17 +24,11 @@
 
 package javazoom.jl.player;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-
 import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.JavaLayerException;
-import tsuteto.mcmp.core.util.McmpLog;
+import tsuteto.mcmp.core.audio.extension.Mp3Player;
+
+import javax.sound.sampled.*;
 
 /**
  * The <code>JavaSoundAudioDevice</code> implements an audio
@@ -51,9 +45,12 @@ public class JavaSoundAudioDevice extends AudioDeviceBase
 
 	private byte[]			byteBuf = new byte[4096];
 
-	private float volumeDb;
+	private Mp3Player player;
 
-	private FloatControl volumeControl = null;
+	public void setPlayer(Mp3Player player)
+	{
+		this.player = player;
+	}
 
 	protected void setAudioFormat(AudioFormat fmt0)
 	{
@@ -110,23 +107,8 @@ public class JavaSoundAudioDevice extends AudioDeviceBase
             {
          		source = (SourceDataLine)line;
                 //source.open(fmt, millisecondsToBytes(fmt, 2000));
-				source.open(fmt);
-
-                if (source.isControlSupported(FloatControl.Type.MASTER_GAIN))
-                {
-                    volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-                }
-                else if (source.isControlSupported(FloatControl.Type.VOLUME))
-                {
-                    volumeControl = (FloatControl) line.getControl(FloatControl.Type.VOLUME);
-                }
-                else
-                {
-                    McmpLog.warn("MP3 Player: Unable to control the volume");
-                }
-
-		        source.start();
-
+				player.initAudioLine(source, fmt);
+				source.start();
             }
         } catch (RuntimeException ex)
           {
@@ -232,21 +214,5 @@ public class JavaSoundAudioDevice extends AudioDeviceBase
 			throw new JavaLayerException("Device test failed: "+ex);
 		}
 
-	}
-
-	public void setVolume(float volume)
-    {
-        float volumeDb = 20 * (float)Math.log(volume);
-        if (volumeControl != null)
-        {
-            if (volumeDb > volumeControl.getMinimum())
-            {
-                volumeControl.setValue(volumeDb);
-            }
-            else
-            {
-                volumeControl.setValue(volumeControl.getMinimum());
-            }
-        }
 	}
 }

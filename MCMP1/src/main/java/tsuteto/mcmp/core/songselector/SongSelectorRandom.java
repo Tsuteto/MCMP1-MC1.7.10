@@ -1,25 +1,23 @@
 package tsuteto.mcmp.core.songselector;
 
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.changer.InventoryChanger;
 import tsuteto.mcmp.changer.ItemChanger;
-import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPortablePlayerController;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 
 public class SongSelectorRandom extends SongSelector
 {
 
-    public SongSelectorRandom(ItemMcmpPlayer player)
+    public SongSelectorRandom(McmpPortablePlayerController controller)
     {
-        super(player);
+        super(controller);
     }
 
     @Override
-    public ItemStack selectSong(InventoryPlayer playerInv)
+    public ItemStack selectSong(ItemStack[] inventory)
     {
-        ItemStack[] inventory = playerInv.mainInventory;
         int slotPlaying = 0;
         int playingInStack = 1;
 
@@ -32,7 +30,7 @@ public class SongSelectorRandom extends SongSelector
         if (numSongs == 0)
             return null;
 
-        int songNo = player.playerRand.nextInt(numSongs) + 1;
+        int songNo = controller.rand.nextInt(numSongs) + 1;
 
         try
         {
@@ -64,8 +62,9 @@ public class SongSelectorRandom extends SongSelector
         }
         finally
         {
-            player.playPos.slotPlaying = slotPlaying;
-            player.playPos.playingInStack = playingInStack;
+            controller.playPos.slotPlaying = slotPlaying;
+            controller.playPos.playingInStack = playingInStack;
+            controller.playPos.changed = true;
         }
     }
 
@@ -80,7 +79,7 @@ public class SongSelectorRandom extends SongSelector
         if (songNum == 0)
             return null;
 
-        int songNo = player.playerRand.nextInt(inventory.getNumSongsInside()) + 1;
+        int songNo = controller.rand.nextInt(inventory.getNumSongsInside()) + 1;
 
         try
         {
@@ -95,7 +94,7 @@ public class SongSelectorRandom extends SongSelector
                         slotPlaying = i;
                         playingInStack = itemstack.stackSize + songNo;
                         Item item = itemstack.getItem();
-                        if (item instanceof ItemCassetteTape && ItemCassetteTape.getSong(itemstack) != null)
+                        if (item instanceof IMcmpMedia && ((IMcmpMedia)item).getSong(itemstack) != null)
                         {
                             return itemstack;
                         }

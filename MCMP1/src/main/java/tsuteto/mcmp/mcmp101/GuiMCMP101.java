@@ -1,15 +1,12 @@
 package tsuteto.mcmp.mcmp101;
 
-import java.awt.Color;
-
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-
 import org.lwjgl.opengl.GL11;
-
 import tsuteto.mcmp.changer.InventoryChanger;
 import tsuteto.mcmp.core.SEs;
 import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
@@ -18,9 +15,8 @@ import tsuteto.mcmp.core.songselector.SongSelectorRandom;
 import tsuteto.mcmp.core.songselector.SongSelectorSpecific;
 import tsuteto.mcmp.core.util.BlankContainer;
 import tsuteto.mcmp.core.util.GuiUtilities;
-import tsuteto.mcmp.core.util.McmpLog;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.awt.*;
 
 @SideOnly(Side.CLIENT)
 public class GuiMCMP101 extends GuiContainer
@@ -28,9 +24,9 @@ public class GuiMCMP101 extends GuiContainer
     private static final ResourceLocation texture = new ResourceLocation("mcmp101", "gui_mcmp101.png");
     private static final int displayWidth = 113;
 
-    private ItemMCMP101 controller;
+    private ItemMCMP101 player;
     private ItemStack memory;
-    private InventoryPlayer playerInventory;
+    private ItemStack[] playerInventory;
     private EntityPlayer entityPlayer;
 
     private int ticksActionIndicator = 0;
@@ -39,9 +35,9 @@ public class GuiMCMP101 extends GuiContainer
     public GuiMCMP101(ItemStack memory, EntityPlayer entityPlayer)
     {
         super(new BlankContainer(entityPlayer.inventory, new InventoryChanger(memory)));
-        this.controller = (ItemMCMP101)MCMP101.itemMCMP101;
+        this.player = (ItemMCMP101)MCMP101.itemMCMP101;
         this.memory = memory;
-        this.playerInventory = entityPlayer.inventory;
+        this.playerInventory = entityPlayer.inventory.mainInventory;
         this.entityPlayer = entityPlayer;
         // Gui size
         xSize = 130;
@@ -66,14 +62,18 @@ public class GuiMCMP101 extends GuiContainer
             {
                 mc.getSoundHandler().playSound(SEs.click());
 
-                ItemStack song = controller.goBack(memory, playerInventory);
+                ItemStack song = player.goBack(memory, playerInventory);
 
-                if (controller.isPlaying)
+                if (song != null && this.player.isPlayerPlaying())
                 {
-                    controller.play(memory, entityPlayer, song);
+                    player.play(memory, entityPlayer, song);
 
                     display = "PREV TRACK";
                     ticksActionIndicator = 30;
+                }
+                else
+                {
+                    ticksActionIndicator = 0;
                 }
             }
         }
@@ -86,26 +86,25 @@ public class GuiMCMP101 extends GuiContainer
             {
                 mc.getSoundHandler().playSound(SEs.click());
 
-                if (!controller.isPlaying)
+                if (!player.isPlayerPlaying())
                 {
 
                     ItemStack song;
-                    song = new SongSelectorSpecific(controller).selectSongToPlay(memory, playerInventory);
+                    song = new SongSelectorSpecific(player.getController()).selectSongToPlay(memory, playerInventory);
                     if (song == null)
                     {
-                        if (controller.isRandomPlaying)
+                        if (player.isRandomPlaying)
                         {
-                            song = new SongSelectorRandom(controller).selectSongToPlay(memory, playerInventory);
+                            song = new SongSelectorRandom(player.getController()).selectSongToPlay(memory, playerInventory);
                         }
                         else
                         {
-                        	song = new SongSelectorNext(controller).selectSongToPlay(memory, playerInventory);
+                        	song = new SongSelectorNext(player.getController()).selectSongToPlay(memory, playerInventory);
                         }
                     }
                     if (song != null)
                     {
-                        controller.play(memory, entityPlayer, song);
-                        McmpLog.debug(Thread.currentThread().getName());
+                        player.play(memory, entityPlayer, song);
                         display = "PLAY";
                     }
                     else
@@ -116,9 +115,9 @@ public class GuiMCMP101 extends GuiContainer
                 else
                 {
                     display = "STOP";
-                    controller.stop(memory, entityPlayer);
+                    player.stop(memory, entityPlayer);
                 }
-                controller.setNoInterval();
+                player.setNoInterval();
                 ticksActionIndicator = 30;
             }
         }
@@ -131,14 +130,18 @@ public class GuiMCMP101 extends GuiContainer
             {
                 mc.getSoundHandler().playSound(SEs.click());
 
-                ItemStack song = controller.goNext(memory, playerInventory);
+                ItemStack song = player.goNext(memory, playerInventory);
 
-                if (controller.isPlaying)
+                if (song != null && player.isPlayerPlaying())
                 {
-                    controller.play(memory, entityPlayer, song);
+                    player.play(memory, entityPlayer, song);
 
                     display = "NEXT TRACK";
                     ticksActionIndicator = 30;
+                }
+                else
+                {
+                    ticksActionIndicator = 0;
                 }
             }
         }
@@ -150,8 +153,8 @@ public class GuiMCMP101 extends GuiContainer
             if (x >= 0 && y >= 0 && x < 16 && y < 16)
             {
                 mc.getSoundHandler().playSound(SEs.click());
-                controller.isRandomPlaying ^= true;
-                controller.setSongSelector();
+                player.isRandomPlaying ^= true;
+                player.setSongSelector();
             }
         }
         // Repeat
@@ -161,8 +164,8 @@ public class GuiMCMP101 extends GuiContainer
             if (x >= 0 && y >= 0 && x < 16 && y < 16)
             {
                 mc.getSoundHandler().playSound(SEs.click());
-                controller.isRepeatPlaying ^= true;
-                controller.setSongSelector();
+                player.isRepeatPlaying ^= true;
+                player.setSongSelector();
             }
         }
     }
@@ -183,7 +186,7 @@ public class GuiMCMP101 extends GuiContainer
         /*
          * Control Panel
          */
-        if (controller.isPlaying)
+        if (player.isPlayerPlaying())
         {
             drawTexturedModalRect(ox + 29, oy + 32, 0, 70, 30, 16);
 
@@ -198,12 +201,12 @@ public class GuiMCMP101 extends GuiContainer
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         }
 
-        if (controller.isRandomPlaying)
+        if (player.isRandomPlaying)
         {
             drawTexturedModalRect(ox + 85, oy + 32, 30, 70, 16, 16);
         }
 
-        if (controller.isRepeatPlaying)
+        if (player.isRepeatPlaying)
         {
             drawTexturedModalRect(ox + 101, oy + 32, 46, 70, 16, 16);
         }
@@ -213,17 +216,17 @@ public class GuiMCMP101 extends GuiContainer
          */
 
         // Welcome!
-        if (!controller.hasStartedUp)
+        if (!player.hasStartedUp)
         {
             display = "Welcome to MCMP-101!";
-            controller.hasStartedUp = true;
+            player.hasStartedUp = true;
             ticksActionIndicator = 30;
 
             // Seek a song
-            ItemStack song = controller.getSelectedSong(memory, playerInventory);
+            ItemStack song = player.getSelectedSong(memory, playerInventory);
             if (song == null)
             {
-                new SongSelectorNext(controller).selectSongToPlay(memory, playerInventory);
+                new SongSelectorNext(player.getController()).selectSongToPlay(memory, playerInventory);
             }
         }
 
@@ -231,17 +234,17 @@ public class GuiMCMP101 extends GuiContainer
         if (ticksActionIndicator <= 0 && display == null)
         {
             String songName;
-            if (controller.itemPlaying != null)
+            if (player.getController().itemPlaying != null)
             {
                 // Track name
-                songName = controller.getPlayingSongName(entityPlayer);
+                songName = player.getPlayingSongName();
             }
             else
             {
-                ItemStack song = controller.getSelectedSong(memory, playerInventory);
+                ItemStack song = player.getSelectedSong(memory, playerInventory);
                 if (song != null)
                 {
-                    songName = ItemMcmpPlayer.getSongName(song, entityPlayer);
+                    songName = ItemMcmpPlayer.getSongName(song);
                 }
                 else
                 {

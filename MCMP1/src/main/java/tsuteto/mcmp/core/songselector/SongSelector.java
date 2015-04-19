@@ -1,33 +1,47 @@
 package tsuteto.mcmp.core.songselector;
 
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
+import net.minecraft.nbt.NBTTagCompound;
 import tsuteto.mcmp.changer.InventoryChanger;
 import tsuteto.mcmp.changer.ItemChanger;
-import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPlayerControllerBase;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPortablePlayerController;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 
+/**
+ * Handles song selection for player
+ */
 public abstract class SongSelector
 {
-    protected final ItemMcmpPlayer player;
+    protected final McmpPlayerControllerBase controller;
 
-    public SongSelector(ItemMcmpPlayer player)
+    public SongSelector(McmpPlayerControllerBase controller)
     {
-        this.player = player;
+        this.controller = controller;
     }
 
-    public ItemStack selectSongToPlay(ItemStack mcmp, InventoryPlayer playerInv)
+    public ItemStack selectSongToPlay(ItemStack stack, ItemStack[] inventory)
     {
-        player.loadPlayerData(mcmp);
-        ItemStack song = selectSong(playerInv);
+        // TODO: This is sort of stupid
+        if (controller instanceof McmpPortablePlayerController)
+        {
+            ItemStack song = selectSong(inventory);
+            ((McmpPortablePlayerController)controller).updatePlayerState(stack);
+            return song;
+        }
+        return null;
+    }
 
-        player.updatePlayerState(mcmp);
+    public ItemStack selectSongToPlay(NBTTagCompound nbt, ItemStack[] inventory)
+    {
+        ItemStack song = selectSong(inventory);
+        controller.writeToNBT(nbt);
         return song;
     }
 
-    abstract public ItemStack selectSong(InventoryPlayer playerInv);
+    abstract public ItemStack selectSong(ItemStack[] inventory);
 
     abstract protected ItemStack findInChanger(InventoryChanger inventory);
 
@@ -48,7 +62,7 @@ public abstract class SongSelector
             if (changerSong != null)
                 return changerSong;
         }
-        else if (item instanceof ItemCassetteTape && ItemCassetteTape.getSong(itemstack) != null)
+        else if (item instanceof IMcmpMedia && ((IMcmpMedia)item).getSong(itemstack) != null)
         {
             return itemstack;
         }
@@ -70,7 +84,7 @@ public abstract class SongSelector
         {
             return new InventoryChanger(itemstack).getNumSongsInside();
         }
-        else if (item instanceof ItemCassetteTape && ItemCassetteTape.getSong(itemstack) != null)
+        else if (item instanceof IMcmpMedia && ((IMcmpMedia)item).getSong(itemstack) != null)
         {
             return itemstack.stackSize;
         }

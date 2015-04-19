@@ -8,15 +8,18 @@ import paulscode.sound.SoundSystem;
 import tsuteto.mcmp.core.util.ReflectionUtil;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 public class SoundManagerAccessor
 {
     private SoundManager soundManager;
     private final Field fldLoaded;
+    private final Field fldInvPlayingSounds;
 
-    public SoundManagerAccessor()
+    SoundManagerAccessor()
     {
         fldLoaded = ReflectionHelper.findField(SoundManager.class, "field_148617_f", "loaded");
+        fldInvPlayingSounds = ReflectionHelper.findField(SoundManager.class, "field_148630_i", "invPlayingSounds");
     }
 
     public SoundManager getSoundManager()
@@ -46,14 +49,15 @@ public class SoundManagerAccessor
         }
     }
 
-//    public SoundPool soundPoolStreaming()
-//    {
-//        return sndManager.soundPoolStreaming;
-//    }
-//
-//    public SoundPool soundPoolSounds()
-//    {
-//        return sndManager.soundPoolSounds;
-//    }
-//
+    public Map invPlayingSounds()
+    {
+        try
+        {
+            return (Map)fldInvPlayingSounds.get(soundManager);
+        }
+        catch (Exception e)
+        {
+            throw new IllegalStateException(e);
+        }
+    }
 }

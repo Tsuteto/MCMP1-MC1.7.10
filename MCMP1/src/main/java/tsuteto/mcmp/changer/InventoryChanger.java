@@ -10,7 +10,6 @@ import net.minecraftforge.common.util.Constants;
 import tsuteto.mcmp.cassettetape.ItemCassetteTape;
 import tsuteto.mcmp.core.mcmpplayer.McmpPlayerManager;
 import tsuteto.mcmp.core.network.PacketDispatcher;
-import tsuteto.mcmp.core.network.PacketManager;
 import tsuteto.mcmp.core.util.McmpLog;
 
 import java.util.ArrayList;
@@ -39,7 +38,14 @@ public class InventoryChanger extends InventoryBasic
         this.owner = player;
         this.changer = itemstack;
         this.isPlayerControl = isPlayerControl;
-        this.readFromNBT(changer.getTagCompound());
+        if (changer.hasTagCompound())
+        {
+            this.readFromNBT(changer.getTagCompound());
+        }
+        else
+        {
+            changer.setTagCompound(new NBTTagCompound());
+        }
     }
 
     /**
@@ -74,7 +80,7 @@ public class InventoryChanger extends InventoryBasic
         {
             ItemStack itemstack = getStackInSlot(i);
             if (itemstack != null && itemstack.getItem() instanceof ItemCassetteTape
-                    && ItemCassetteTape.getSong(itemstack) != null)
+                    && ((ItemCassetteTape)itemstack.getItem()).getSong(itemstack) != null)
             {
                 songList.add(itemstack);
             }
@@ -104,7 +110,6 @@ public class InventoryChanger extends InventoryBasic
     	McmpLog.debug("LOC:" + locChanger);
     	if (locChanger < 0) return;
     	
-		McmpLog.debug("CHANGER-POS(%d, %d)", slotPlaying, playingInStack);
         PacketDispatcher.packet(
                 new PacketChangerState(isPlayerControl, locChanger, slotPlaying, playingInStack)).sendToServer();
     }
@@ -165,7 +170,7 @@ public class InventoryChanger extends InventoryBasic
         changer.setShort("PlayingInStack", (short) playingInStack);
         changer.setString("Name", changerName);
 
-        NBTTagList cassetes = new NBTTagList();
+        NBTTagList cassettes = new NBTTagList();
 
         for (int var3 = 0; var3 < this.getSizeInventory(); ++var3)
         {
@@ -174,11 +179,11 @@ public class InventoryChanger extends InventoryBasic
                 NBTTagCompound var4 = new NBTTagCompound();
                 var4.setByte("Slot", (byte) var3);
                 this.getStackInSlot(var3).writeToNBT(var4);
-                cassetes.appendTag(var4);
+                cassettes.appendTag(var4);
             }
         }
 
-        changer.setTag("Cassettes", cassetes);
+        changer.setTag("Cassettes", cassettes);
 
         par1NBTTagCompound.setTag("McmpChanger", changer);
     }

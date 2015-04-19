@@ -13,7 +13,7 @@ import java.io.InputStream;
  * Almost copied from javazoom.jl.player.advanced.AdvancedPlayer
  */
 @SideOnly(Side.CLIENT)
-public class Mp3Player implements ExternalAudioPlayer
+public class Mp3Player extends AudioPlayerBase
 {
     /** The MPEG audio bitstream. */
     private Bitstream bitstream;
@@ -27,18 +27,19 @@ public class Mp3Player implements ExternalAudioPlayer
     private boolean complete = false;
     private int lastPosition = 0;
 
-    /** Now playing? */
-    private boolean playing = false;
-
     /**
      * Creates a new <code>Player</code> instance.
      */
-    public Mp3Player(InputStream stream) throws JavaLayerException
+    public Mp3Player(InputStream stream) throws Exception
     {
         bitstream = new Bitstream(stream);
 
         audio = FactoryRegistry.systemRegistry().createAudioDevice();
         audio.open(decoder = new Decoder());
+        if (audio instanceof JavaSoundAudioDevice)
+        {
+            ((JavaSoundAudioDevice)audio).setPlayer(this);
+        }
     }
 
     public void play() throws Exception
@@ -58,11 +59,10 @@ public class Mp3Player implements ExternalAudioPlayer
     {
         boolean ret = true;
 
-        playing = true;
-
         while (frames-- > 0 && ret)
         {
             ret = decodeFrame();
+            this.handleLocking();
         }
 
         {
@@ -81,7 +81,7 @@ public class Mp3Player implements ExternalAudioPlayer
             }
         }
 
-        playing = false;
+        running = false;
 
         return ret;
     }
@@ -195,25 +195,5 @@ public class Mp3Player implements ExternalAudioPlayer
     // return new PlaybackEvent(this, id, dev.getPosition());
     // }
 
-    /**
-     * closes the player and notifies <code>PlaybackListener</code>
-     */
-    public void stop()
-    {
-        // listener.playbackFinished(createEvent(PlaybackEvent.STOPPED));
-        close();
-    }
 
-    public boolean playing()
-    {
-        return playing;
-    }
-
-    public void setVolume(float volume)
-    {
-        if (audio instanceof JavaSoundAudioDevice)
-        {
-            ((JavaSoundAudioDevice) audio).setVolume(volume);
-        }
-    }
 }

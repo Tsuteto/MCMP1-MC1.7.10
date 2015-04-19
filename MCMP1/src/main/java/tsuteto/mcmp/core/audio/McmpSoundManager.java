@@ -1,218 +1,148 @@
 package tsuteto.mcmp.core.audio;
 
-import java.io.File;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import cpw.mods.fml.client.FMLClientHandler;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.audio.SoundCategory;
-import net.minecraft.client.settings.GameSettings;
-import net.minecraft.util.ResourceLocation;
-import tsuteto.mcmp.core.Mcmp1Core;
-import tsuteto.mcmp.core.audio.extension.ExternalAudioPlayer;
-import tsuteto.mcmp.core.audio.extension.Mp3PlayerFactory;
-import tsuteto.mcmp.core.audio.extension.AacPlayerFactory;
-import tsuteto.mcmp.core.audio.extension.WavPlayerFactory;
-import tsuteto.mcmp.core.audio.internal.InternalAudioPlayer;
-import tsuteto.mcmp.core.song.SongInfo;
-import tsuteto.mcmp.core.song.SongManager;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import tsuteto.mcmp.core.Mcmp1Core;
+import tsuteto.mcmp.core.audio.extension.AacPlayerFactory;
+import tsuteto.mcmp.core.audio.extension.Mp3PlayerFactory;
+import tsuteto.mcmp.core.audio.extension.WavPlayerFactory;
+import tsuteto.mcmp.core.audio.param.IMcmpSound;
+import tsuteto.mcmp.core.song.SongFileLoader;
+import tsuteto.mcmp.core.song.SongManager;
+import tsuteto.mcmp.core.song.SongPool;
 import tsuteto.mcmp.core.util.McmpLog;
 
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Sound Manager for MCMP-1, handling songs and audio player factories
+ */
 @SideOnly(Side.CLIENT)
 public class McmpSoundManager
 {
-    private static McmpSoundManager instance;
+    public static McmpSoundManager INSTANCE = new McmpSoundManager();
+
+    private Map<SoundSystemType, McmpPlayerFactory> playerFactoryRegistry = Maps.newHashMap();
+    private List<McmpAudioPlayer> activeBGMs = Lists.newArrayList();
+    private List<McmpAudioPlayer> activeBlocks = Lists.newArrayList();
+    private List<McmpAudioPlayer> removedPlayers = Lists.newArrayList();
 
     private SongManager songManager;
-    private InternalAudioPlayer internalAudio;
-    private ExternalAudioPlayer externalAudio;
-    /** For cooling down internal sound system */
-    private int ticksCoolDown = 0;
 
     public static McmpSoundManager getInstance()
     {
-        if (instance == null)
-        {
-            instance = new McmpSoundManager();
-        }
-        return instance;
+        return INSTANCE;
     }
 
     private McmpSoundManager()
     {
-        songManager = new SongManager(getSongDir());
-        internalAudio = new InternalAudioPlayer();
+        this.songManager = new SongManager();
+
+        this.registerFactory(SoundSystemType.MP3, new Mp3PlayerFactory());
+        this.registerFactory(SoundSystemType.AAC, new AacPlayerFactory());
+        this.registerFactory(SoundSystemType.WAV, new WavPlayerFactory());
     }
 
-    public static File getSongDir()
+    public void registerFactory(SoundSystemType type, McmpPlayerFactory factory)
     {
-        return new File(FMLClientHandler.instance().getClient().mcDataDir, Mcmp1Core.songDir);
+        this.playerFactoryRegistry.put(type, factory);
     }
 
-    public boolean playInternal(ISound sound, GameSettings options)
+    public void loadSongs()
     {
-        if (playing()) stop();
-        boolean hasPlayed = this.internalAudio.play(sound);
-        if (hasPlayed) ticksCoolDown = 20;
-        return hasPlayed;
-    }
-
-//    public boolean playInternal(SongInfo songinfo, GameSettings options)
-//    {
-//        if (playing()) stop();
-//        boolean hasPlayed = this.internalAudio.play(songinfo.file, options);
-//        if (hasPlayed) ticksCoolDown = 20;
-//        return hasPlayed;
-//    }
-
-    public boolean playMp3(SongInfo songinfo, GameSettings options)
-    {
-        if (!songinfo.file.exists())
-            return false;
-
-        if (playing())
-            stop();
-
-        try
-        {
-            externalAudio = Mp3PlayerFactory.playMp3(songinfo.file);
-            externalAudio.setVolume(options.getSoundLevel(SoundCategory.MASTER) * options.getSoundLevel(SoundCategory.MUSIC));
-            return true;
-        }
-        catch (Exception e)
-        {
-            McmpLog.warn(e, "Failed to play MP3 file");
-            return false;
-        }
-    }
-
-    public boolean playAac(SongInfo songinfo, GameSettings options)
-    {
-        if (!songinfo.file.exists())
-            return false;
-
-        if (playing())
-            stop();
-
-        try
-        {
-            externalAudio = AacPlayerFactory.playAac(songinfo.file);
-            externalAudio.setVolume(options.getSoundLevel(SoundCategory.MASTER) * options.getSoundLevel(SoundCategory.MUSIC));
-            return true;
-        }
-        catch (Exception e)
-        {
-            McmpLog.warn(e, "Failed to play MP4 file");
-            return false;
-        }
-    }
-
-    public boolean playWav(SongInfo songinfo, GameSettings options)
-    {
-        if (!songinfo.file.exists())
-            return false;
-
-        if (playing())
-            stop();
-
-        try
-        {
-            externalAudio = WavPlayerFactory.playWav(songinfo.file);
-            externalAudio.setVolume(options.getSoundLevel(SoundCategory.MASTER) * options.getSoundLevel(SoundCategory.MUSIC));
-            return true;
-        }
-        catch (Exception e)
-        {
-            McmpLog.warn(e, "Failed to play WAV file");
-            return false;
-        }
-    }
-
-    public boolean playRecord(String recordName, GameSettings options)
-    {
-        ISound sound = PositionedSoundRecord.func_147673_a(new ResourceLocation("records." + recordName));
-        return playInternal(sound, options);
-    }
-
-    public boolean playHddSong(SongInfo info, GameSettings options)
-    {
-//        if (info.playerType == EnumSoundSystemType.INTERNAL)
-//        {
-//            return playInternal(info, options);
-//        }
-        if (info.playerType == EnumSoundSystemType.MP3)
-        {
-            return playMp3(info, options);
-        }
-        else if (info.playerType == EnumSoundSystemType.AAC)
-        {
-            return playAac(info, options);
-        }
-        else if (info.playerType == EnumSoundSystemType.WAV)
-        {
-            return playWav(info, options);
-        }
-        return false;
-    }
-
-    public void stop()
-    {
-        internalAudio.stop();
-        stopExtAudio();
-    }
-
-    public void stopExtAudio()
-    {
-        if (externalAudio != null)
-        {
-            externalAudio.stop();
-            externalAudio = null;
-        }
-    }
-
-    public void updateVolume()
-    {
-        if (externalAudio != null && externalAudio.playing())
-        {
-            Minecraft mc = FMLClientHandler.instance().getClient();
-            externalAudio.setVolume(mc.gameSettings.getSoundLevel(SoundCategory.MASTER) * mc.gameSettings.getSoundLevel(SoundCategory.MUSIC));
-        }
-    }
-
-    public boolean playing()
-    {
-        if (isReady())
-        {
-            boolean isInternalPlaying = this.internalAudio.playing();
-            if (ticksCoolDown > 0 || isInternalPlaying)
-            {
-                if (ticksCoolDown > 0)
-                    ticksCoolDown--;
-                if (ticksCoolDown > 0 && isInternalPlaying)
-                {
-                    ticksCoolDown = 0;
-                }
-                return true;
-            }
-        }
-        return externalAudio != null && externalAudio.playing();
-    }
-
-    public boolean isReady()
-    {
-        return internalAudio.isReady();
-    }
-
-    public boolean isSoundSystemValid()
-    {
-        return internalAudio.valid();
+        File songDir = new File(FMLClientHandler.instance().getClient().mcDataDir, Mcmp1Core.songDir);
+        SongPool songPool = SongFileLoader.loadSongs(songDir);
+        this.songManager.setSongPool(songPool);
     }
 
     public SongManager getSongManager()
     {
         return songManager;
+    }
+
+    public McmpPlayerFactory getPlayerFactory(SoundSystemType type)
+    {
+        return playerFactoryRegistry.get(type);
+    }
+
+    public List<McmpAudioPlayer> getAllPlayers()
+    {
+        List<McmpAudioPlayer> list = Lists.newArrayList();
+        list.addAll(this.activeBGMs);
+        list.addAll(this.activeBlocks);
+        return list;
+    }
+
+    public List<McmpAudioPlayer> getActiveBlocks()
+    {
+        return this.activeBlocks;
+    }
+
+    public void addActivePlayer(McmpAudioPlayer player)
+    {
+        if (player.getSoundParams().getAttenuationType() == IMcmpSound.AttenuationType.NONE)
+        {
+            this.activeBGMs.add(player);
+        }
+        else
+        {
+            this.activeBlocks.add(player);
+        }
+        McmpLog.debug("Added: BGM=%s, Block=%s", activeBGMs.size(), activeBlocks.size());
+    }
+
+    public void removeActivePlayer(McmpAudioPlayer player)
+    {
+        this.removedPlayers.add(player);
+    }
+
+    public void removeInactivePlayers()
+    {
+        if (!this.removedPlayers.isEmpty())
+        {
+            for (McmpAudioPlayer player : this.removedPlayers)
+            {
+                this.activeBGMs.remove(player);
+                this.activeBlocks.remove(player);
+            }
+            this.removedPlayers.clear();
+            McmpLog.debug("Removed: BGM=%s, Block=%s", activeBGMs.size(), activeBlocks.size());
+        }
+    }
+
+    public void resumeAllSounds()
+    {
+        for (McmpAudioPlayer player : this.getAllPlayers())
+        {
+            player.resume();
+        }
+    }
+
+    public void pauseAllSounds()
+    {
+        for (McmpAudioPlayer player : this.getAllPlayers())
+        {
+            player.pause();
+        }
+
+    }
+
+    // Called from coremod (TEntryMusicType)
+    public boolean isBgmPlaying()
+    {
+        return this.activeBGMs.size() > 0;
+    }
+
+    public void stopAllSounds()
+    {
+        for (McmpAudioPlayer player : this.getAllPlayers())
+        {
+            player.stop();
+        }
     }
 }

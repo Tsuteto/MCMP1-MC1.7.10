@@ -1,25 +1,24 @@
 package tsuteto.mcmp.core.audio.extension;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import tsuteto.mcmp.core.audio.McmpPlayerFactory;
+import tsuteto.mcmp.core.audio.param.IMcmpSound;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
-import javazoom.jl.decoder.JavaLayerException;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 @SideOnly(Side.CLIENT)
-public class Mp3PlayerFactory
+public class Mp3PlayerFactory implements McmpPlayerFactory
 {
-    public static Mp3Player playMp3(File mp3) throws IOException, JavaLayerException
+    public Mp3Player play(File mp3, IMcmpSound soundParams) throws Exception
     {
-        return playMp3(new BufferedInputStream(new FileInputStream(mp3)));
+        return play(new BufferedInputStream(new FileInputStream(mp3)), soundParams);
     }
 
-    public static Mp3Player playMp3(final InputStream stream)
-            throws JavaLayerException
+    public Mp3Player play(final InputStream stream, IMcmpSound soundParams) throws Exception
     {
         final Mp3Player player = new Mp3Player(stream);
 
@@ -40,4 +39,5 @@ public class Mp3PlayerFactory
         playingThread.start();
         return player;
     }
+
 }

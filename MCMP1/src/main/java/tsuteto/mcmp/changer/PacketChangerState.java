@@ -2,11 +2,11 @@ package tsuteto.mcmp.changer;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import tsuteto.mcmp.core.network.AbstractPacket;
 import tsuteto.mcmp.core.network.MessageToServer;
+import tsuteto.mcmp.core.util.McmpLog;
 
 public class PacketChangerState extends AbstractPacket implements MessageToServer
 {
@@ -55,6 +55,7 @@ public class PacketChangerState extends AbstractPacket implements MessageToServe
                 inv.slotPlaying = slotPlaying;
                 inv.playingInStack = playingInStack;
                 inv.saveInventory();
+                McmpLog.debug("CHANGER-POS(%d, %d)", slotPlaying, playingInStack);
             }
             catch (Exception e)
             {

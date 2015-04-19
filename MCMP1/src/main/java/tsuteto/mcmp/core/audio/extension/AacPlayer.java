@@ -13,13 +13,9 @@ import javax.sound.sampled.*;
 import java.io.InputStream;
 import java.util.List;
 
-public class AacPlayer implements ExternalAudioPlayer
+public class AacPlayer extends AudioPlayerBase
 {
-    public boolean playing = false;
-
     private AudioTrack track;
-    private SourceDataLine line = null;
-    private FloatControl volumeControl;
 
     public AacPlayer(InputStream in) throws Exception
     {
@@ -33,39 +29,15 @@ public class AacPlayer implements ExternalAudioPlayer
 
         this.track = (AudioTrack) tracks.get(0);
         AudioFormat aufmt = new AudioFormat((float) track.getSampleRate(), track.getSampleSize(), track.getChannelCount(), true, true);
-        Line line = AudioSystem.getLine(getSourceLineInfo(aufmt));
-
-        if (line instanceof SourceDataLine)
-        {
-            this.line = (SourceDataLine) line;
-            this.line.open(aufmt);
-
-            if (this.line.isControlSupported(FloatControl.Type.MASTER_GAIN))
-            {
-                volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-            }
-            else if (this.line.isControlSupported(FloatControl.Type.VOLUME))
-            {
-                volumeControl = (FloatControl) line.getControl(FloatControl.Type.VOLUME);
-            }
-            else
-            {
-                McmpLog.warn("AAC Player: Unable to control the volume");
-            }
-        }
-    }
-
-    protected DataLine.Info getSourceLineInfo(AudioFormat aufmt)
-    {
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, aufmt);
-        return info;
+        Line line = AudioSystem.getLine(info);
+        this.initAudioLine(line, aufmt);
     }
 
     public void play() throws Exception
     {
         try
         {
-            playing = true;
             line.start();
             Decoder dec = new Decoder(track.getDecoderSpecificInfo());
             SampleBuffer buf = new SampleBuffer();
@@ -80,6 +52,7 @@ public class AacPlayer implements ExternalAudioPlayer
 
                     byte[] b = buf.getData();
                     line.write(b, 0, b.length);
+                    this.handleLocking();
                 }
             }
             catch (AACException var15)
@@ -94,35 +67,9 @@ public class AacPlayer implements ExternalAudioPlayer
 
     }
 
-    public void stop()
+    @Override
+    public synchronized void close()
     {
-        if (line != null)
-        {
-            line.stop();
-            line.close();
-        }
-        playing = false;
+        super.close();
     }
-
-    public boolean playing()
-    {
-        return playing;
-    }
-
-    public void setVolume(float volume)
-    {
-        float volumeDb = 20 * (float)Math.log(volume);
-        if (volumeControl != null)
-        {
-            if (volumeDb > volumeControl.getMinimum())
-            {
-                volumeControl.setValue(volumeDb);
-            }
-            else
-            {
-                volumeControl.setValue(volumeControl.getMinimum());
-            }
-        }
-    }
-
 }

@@ -1,23 +1,23 @@
 package tsuteto.mcmp.core.songselector;
 
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
+import net.minecraft.util.MathHelper;
 import tsuteto.mcmp.changer.InventoryChanger;
-import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPortablePlayerController;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 
 public class SongSelectorSpecific extends SongSelector
 {
 
-    public SongSelectorSpecific(ItemMcmpPlayer player)
+    public SongSelectorSpecific(McmpPortablePlayerController controller)
     {
-        super(player);
+        super(controller);
     }
 
     @Override
-    public ItemStack selectSong(InventoryPlayer playerInv)
+    public ItemStack selectSong(ItemStack[] inventory)
     {
-        ItemStack itemstack = playerInv.mainInventory[player.playPos.slotPlaying];
+        ItemStack itemstack = inventory[MathHelper.clamp_int(controller.playPos.slotPlaying, 0, inventory.length - 1)];
         return pickSongFromItemStack(itemstack);
     }
 
@@ -25,8 +25,8 @@ public class SongSelectorSpecific extends SongSelector
     protected ItemStack findInChanger(InventoryChanger inventory)
     {
         ItemStack itemstack = inventory.getStackInSlot(inventory.slotPlaying);
-        if (itemstack != null && itemstack.getItem() instanceof ItemCassetteTape
-                && ItemCassetteTape.getSong(itemstack) != null)
+        if (itemstack != null && itemstack.getItem() instanceof IMcmpMedia
+                && ((IMcmpMedia) itemstack.getItem()).getSong(itemstack) != null)
         {
             return itemstack;
         }

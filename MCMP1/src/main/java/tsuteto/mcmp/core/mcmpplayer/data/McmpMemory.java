@@ -1,4 +1,4 @@
-package tsuteto.mcmp.core.mcmpplayer;
+package tsuteto.mcmp.core.mcmpplayer.data;
 
 public class McmpMemory
 {

@@ -1,8 +1,10 @@
 package tsuteto.mcmp.core.sidedproxy;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import net.minecraftforge.common.MinecraftForge;
 import tsuteto.mcmp.core.Mcmp1Core;
 import tsuteto.mcmp.core.eventhandler.CommonTickHandler;
+import tsuteto.mcmp.core.eventhandler.GuiEvent;
 
 public class ClientProxy extends CommonProxy
 {
@@ -10,6 +12,7 @@ public class ClientProxy extends CommonProxy
     public void registerComponents(Mcmp1Core mod)
     {
         FMLCommonHandler.instance().bus().register(new CommonTickHandler());
+        MinecraftForge.EVENT_BUS.register(new GuiEvent());
     }
 
     @Override

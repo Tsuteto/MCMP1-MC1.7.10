@@ -47,7 +47,7 @@ public class TEntryMusicType implements ITransformerEntry, Opcodes
                 "()Ltsuteto/mcmp/core/audio/McmpSoundManager;", false));
         overrideList.add(new MethodInsnNode(INVOKEVIRTUAL,
                 "tsuteto/mcmp/core/audio/McmpSoundManager",
-                "playing",
+                "isBgmPlaying",
                 "()Z", false));
         LabelNode l1 = new LabelNode();
         overrideList.add(new JumpInsnNode(IFEQ, l1));

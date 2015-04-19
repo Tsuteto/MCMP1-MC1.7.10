@@ -2,10 +2,11 @@ package tsuteto.mcmp.core.mcmpplayer;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPlayerControllerBase;
 import tsuteto.mcmp.core.network.AbstractPacket;
+import tsuteto.mcmp.core.network.MessageToClient;
 import tsuteto.mcmp.core.network.MessageToServer;
 import tsuteto.mcmp.core.util.McmpLog;
 
@@ -15,7 +16,7 @@ import tsuteto.mcmp.core.util.McmpLog;
  * @author Tsuteto
  *
  */
-public class PacketMcmpPlayerCtl extends AbstractPacket implements MessageToServer
+public class PacketMcmpPlayerCtl extends AbstractPacket implements MessageToServer, MessageToClient
 {
     private int type;
     private int slotPlaying;
@@ -56,6 +57,17 @@ public class PacketMcmpPlayerCtl extends AbstractPacket implements MessageToServ
     @Override
     public IMessage handleServerSide(EntityPlayer player)
     {
+        return this.handleCommon(player);
+    }
+
+    @Override
+    public IMessage handleClientSide(EntityPlayer player)
+    {
+        return this.handleCommon(player);
+    }
+
+    public IMessage handleCommon(EntityPlayer player)
+    {
         ItemStack itemstack = McmpPlayerManager.getActivePlayer();
 
         if (itemstack != null && itemstack.getItem() instanceof ItemMcmpPlayer)
@@ -66,16 +78,22 @@ public class PacketMcmpPlayerCtl extends AbstractPacket implements MessageToServ
             {
                 switch (this.type)
                 {
-                    case ItemMcmpPlayer.PKT_TYPE_STATE:
-                        mcmpPlayer.playPos.slotPlaying = this.slotPlaying;
-                        mcmpPlayer.playPos.playingInStack = this.playingInStack;
-                        McmpLog.debug(mcmpPlayer.playPos);
+                    case McmpPlayerControllerBase.PKT_TYPE_STATE:
+                        mcmpPlayer.controller.playPos.slotPlaying = this.slotPlaying;
+                        mcmpPlayer.controller.playPos.playingInStack = this.playingInStack;
+                        McmpLog.debug(mcmpPlayer.controller.playPos); // PLAYER-POS
                         break;
-                    case ItemMcmpPlayer.PKT_TYPE_PLAY:
+                    case McmpPlayerControllerBase.PKT_TYPE_PLAY:
                         mcmpPlayer.play(itemstack, player, null);
                         break;
-                    case ItemMcmpPlayer.PKT_TYPE_STOP:
+                    case McmpPlayerControllerBase.PKT_TYPE_STOP:
                         mcmpPlayer.stop(itemstack, player);
+                        break;
+                    case McmpPlayerControllerBase.PKT_TYPE_PAUSE:
+                        mcmpPlayer.pause(itemstack, player);
+                        break;
+                    case McmpPlayerControllerBase.PKT_TYPE_RESUME:
+                        mcmpPlayer.resume(itemstack, player);
                         break;
                 }
                 mcmpPlayer.receiveAdditionalCtlPacketData(type, byteBuf);
@@ -87,4 +105,6 @@ public class PacketMcmpPlayerCtl extends AbstractPacket implements MessageToServ
         }
         return null;
     }
+
+
 }

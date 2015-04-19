@@ -1,16 +1,15 @@
 package tsuteto.mcmp.core.song;
 
-import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 
 public class SongManager
 {
+
     private SongPool songPool;
 
-    public SongManager(File assetsDir)
+    public void setSongPool(SongPool songPool)
     {
-        songPool = new SongPool(assetsDir);
+        this.songPool = songPool;
     }
 
     public SongPool getSongPool()

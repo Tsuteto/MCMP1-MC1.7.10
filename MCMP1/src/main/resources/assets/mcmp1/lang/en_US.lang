@@ -1,4 +1,5 @@
 tile.mcmp1:dubbingMachine.name=Cassette Recorder
+tile.mcmp1:cassetteDeck.name=MCMP-D01
 
 item.mcmp1:mcmp1.name=MCMP-1
 item.mcmp1:cassetteChanger.name=Cassette Changer

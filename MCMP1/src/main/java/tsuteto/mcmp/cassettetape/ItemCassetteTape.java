@@ -1,8 +1,5 @@
 package tsuteto.mcmp.cassettetape;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -13,10 +10,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import tsuteto.mcmp.core.audio.McmpSoundManager;
+import tsuteto.mcmp.core.media.IMcmpMedia;
 import tsuteto.mcmp.core.song.MediaSongEntry;
 import tsuteto.mcmp.core.song.SongInfo;
 
-public class ItemCassetteTape extends Item
+import java.util.List;
+
+public class ItemCassetteTape extends Item implements IMcmpMedia
 {
     public static final int[] colors = new int[] {
         0x1e1b1b, // black
@@ -42,6 +42,77 @@ public class ItemCassetteTape extends Item
         super();
         setMaxDamage(0);
         setHasSubtypes(true);
+    }
+
+    public void setSong(ItemStack itemstack, MediaSongEntry entry)
+    {
+        if (itemstack.stackTagCompound == null)
+        {
+            itemstack.setTagCompound(new NBTTagCompound());
+        }
+
+        itemstack.stackTagCompound.setTag("mcmp", new NBTTagList());
+
+        NBTTagList nbttaglist = (NBTTagList) itemstack.stackTagCompound.getTag("mcmp");
+        NBTTagCompound nbttagcompound = new NBTTagCompound();
+        nbttagcompound.setByte("s", (byte) entry.source.ordinal());
+        nbttagcompound.setString("t", entry.id);
+        nbttaglist.appendTag(nbttagcompound);
+    }
+
+    public MediaSongEntry getSong(ItemStack itemstack)
+    {
+        NBTTagCompound stackTagCompound = itemstack.getTagCompound();
+
+        if (stackTagCompound != null && stackTagCompound.hasKey("mcmp"))
+        {
+            NBTTagList nbttaglist = (NBTTagList) stackTagCompound.getTag("mcmp");
+            if (nbttaglist != null)
+            {
+                return new MediaSongEntry(
+                        nbttaglist.getCompoundTagAt(0).getByte("s"),
+                        nbttaglist.getCompoundTagAt(0).getString("t")
+                        );
+            }
+        }
+        return null;
+    }
+
+    public String getSongName(ItemStack itemstack)
+    {
+        MediaSongEntry song = getSong(itemstack);
+        if (song == null)
+        {
+            return "";
+        }
+        if (song.source == Source.HDD)
+        {
+            SongInfo info = McmpSoundManager.getInstance().getSongManager().getSongInfo(song);
+            if (info != null)
+            {
+                return info.songName;
+            }
+            else
+            {
+                return StatCollector.translateToLocalFormatted("mcmp1.fileNotFound", song.id);
+            }
+        }
+        else if (song.source == Source.RECORDS)
+        {
+            ItemRecord itemrecord = ItemRecord.getRecord("records." + song.id);
+            if (itemrecord != null)
+            {
+                return itemrecord.getRecordNameLocal();
+            }
+            else
+            {
+                return StatCollector.translateToLocalFormatted("mcmp1.recordNotFound", song.id);
+            }
+        }
+        else
+        {
+            return "";
+        }
     }
 
     /**
@@ -75,71 +146,13 @@ public class ItemCassetteTape extends Item
         return ~par0 & 15;
     }
 
-    public static void setSong(ItemStack itemstack, MediaSongEntry entry)
-    {
-        if (itemstack.stackTagCompound == null)
-        {
-            itemstack.setTagCompound(new NBTTagCompound());
-        }
-
-        itemstack.stackTagCompound.setTag("mcmp", new NBTTagList());
-
-        NBTTagList nbttaglist = (NBTTagList) itemstack.stackTagCompound.getTag("mcmp");
-        NBTTagCompound nbttagcompound = new NBTTagCompound();
-        nbttagcompound.setByte("s", (byte) entry.source.ordinal());
-        nbttagcompound.setString("t", entry.id);
-        nbttaglist.appendTag(nbttagcompound);
-    }
-
-    public static MediaSongEntry getSong(ItemStack itemstack)
-    {
-        NBTTagCompound stackTagCompound = itemstack.getTagCompound();
-
-        if (stackTagCompound != null && stackTagCompound.hasKey("mcmp"))
-        {
-            NBTTagList nbttaglist = (NBTTagList) stackTagCompound.getTag("mcmp");
-            if (nbttaglist != null)
-            {
-                return new MediaSongEntry(
-                        nbttaglist.getCompoundTagAt(0).getByte("s"),
-                        nbttaglist.getCompoundTagAt(0).getString("t")
-                        );
-            }
-        }
-        return null;
-    }
-
     @Override
     public void addInformation(ItemStack itemstack, EntityPlayer player, List list, boolean bool)
     {
-        MediaSongEntry song = getSong(itemstack);
-        if (song == null)
+        String songName = getSongName(itemstack);
+        if (songName != null)
         {
-            return;
-        }
-        if (song.source == Source.HDD)
-        {
-            SongInfo info = McmpSoundManager.getInstance().getSongManager().getSongInfo(song);
-            if (info != null)
-            {
-                list.add(info.songName);
-            }
-            else
-            {
-                list.add(StatCollector.translateToLocalFormatted("mcmp1.fileNotFound", song.id));
-            }
-        }
-        else if (song.source == Source.RECORDS)
-        {
-            ItemRecord itemrecord = ItemRecord.getRecord("records." + song.id);
-            if (itemrecord != null)
-            {
-                list.add(itemrecord.getRecordNameLocal());
-            }
-            else
-            {
-                list.add(StatCollector.translateToLocalFormatted("mcmp1.recordNotFound", song.id));
-            }
+            list.add(songName);
         }
     }
 

@@ -2,15 +2,10 @@ package tsuteto.mcmp.mcmp101;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import tsuteto.mcmp.core.mcmpplayer.ItemMcmpPlayer;
-import tsuteto.mcmp.core.songselector.SongSelector;
-import tsuteto.mcmp.core.songselector.SongSelectorNext;
-import tsuteto.mcmp.core.songselector.SongSelectorPrev;
-import tsuteto.mcmp.core.songselector.SongSelectorRandom;
-import tsuteto.mcmp.core.songselector.SongSelectorSpecific;
+import tsuteto.mcmp.core.songselector.*;
 
 public class ItemMCMP101 extends ItemMcmpPlayer
 {
@@ -26,7 +21,7 @@ public class ItemMCMP101 extends ItemMcmpPlayer
     {
         super();
 
-        selectorSpecific = new SongSelectorSpecific(this);
+        selectorSpecific = new SongSelectorSpecific(this.controller);
         setSongSelector();
     }
 
@@ -54,18 +49,18 @@ public class ItemMCMP101 extends ItemMcmpPlayer
             return;
         }
 
-        boolean sndPlaying = sndMgr.playing();
+        boolean sndPlaying = this.controller.getAudioPlayer().playing();
         EntityPlayer player = (EntityPlayer) entity;
 
-        if (isPlaying && !sndPlaying)
+        if (this.isPlayerPlaying() && !sndPlaying)
         {
-            if (timeInterval > 0)
+            if (this.timeInterval > 0)
             {
-                timeInterval--;
+                this.timeInterval--;
             }
             else
             {
-                ItemStack nextSong = this.goNext(itemstack, player.inventory);
+                ItemStack nextSong = this.goNext(itemstack, player.inventory.mainInventory);
                 if (nextSong != null)
                 {
                     play(itemstack, player, nextSong);
@@ -73,43 +68,43 @@ public class ItemMCMP101 extends ItemMcmpPlayer
                 else
                 {
                     stop(itemstack, player);
-                    playPos.slotPlaying = 0;
-                    playPos.playingInStack = 0;
+                    this.controller.playPos.slotPlaying = 0;
+                    this.controller.playPos.playingInStack = 0;
                 }
-                timeInterval = 20;
+                this.timeInterval = 20;
             }
         }
     }
 
-    public ItemStack getSelectedSong(ItemStack mcmp, InventoryPlayer playerInv)
+    public ItemStack getSelectedSong(ItemStack mcmp, ItemStack[] inventory)
     {
-        return selectorSpecific.selectSongToPlay(mcmp, playerInv);
+        return selectorSpecific.selectSongToPlay(mcmp, inventory);
     }
 
-    public ItemStack goNext(ItemStack mcmp, InventoryPlayer playerInv)
+    public ItemStack goNext(ItemStack mcmp, ItemStack[] inventory)
     {
-        return selectorNext.selectSongToPlay(mcmp, playerInv);
+        return selectorNext.selectSongToPlay(mcmp, inventory);
     }
 
-    public ItemStack goBack(ItemStack mcmp, InventoryPlayer playerInv)
+    public ItemStack goBack(ItemStack mcmp, ItemStack[] inventory)
     {
-        return selectorPrev.selectSongToPlay(mcmp, playerInv);
+        return selectorPrev.selectSongToPlay(mcmp, inventory);
     }
 
     public void setSongSelector()
     {
         if (isRepeatPlaying)
         {
-            selectorNext = selectorPrev = new SongSelectorSpecific(this);
+            selectorNext = selectorPrev = new SongSelectorSpecific(this.controller);
         }
         else if (isRandomPlaying)
         {
-            selectorNext = selectorPrev = new SongSelectorRandom(this);
+            selectorNext = selectorPrev = new SongSelectorRandom(this.controller);
         }
         else
         {
-            selectorNext = new SongSelectorNext(this);
-            selectorPrev = new SongSelectorPrev(this);
+            selectorNext = new SongSelectorNext(this.controller);
+            selectorPrev = new SongSelectorPrev(this.controller);
         }
     }
 

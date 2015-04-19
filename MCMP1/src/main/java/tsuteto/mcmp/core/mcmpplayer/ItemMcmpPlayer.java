@@ -1,43 +1,24 @@
 package tsuteto.mcmp.core.mcmpplayer;
 
-import cpw.mods.fml.client.FMLClientHandler;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemRecord;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
-import tsuteto.mcmp.cassettetape.ItemCassetteTape;
-import tsuteto.mcmp.core.audio.McmpSoundManager;
-import tsuteto.mcmp.core.network.PacketDispatcher;
-import tsuteto.mcmp.core.song.MediaSongEntry;
-import tsuteto.mcmp.core.song.SongInfo;
+import tsuteto.mcmp.core.audio.McmpAudioPlayer;
+import tsuteto.mcmp.core.mcmpplayer.controller.McmpPortablePlayerController;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public abstract class ItemMcmpPlayer extends Item
 {
-    public static final int PKT_TYPE_STATE = 0;
-    public static final int PKT_TYPE_PLAY = 1;
-    public static final int PKT_TYPE_STOP = 2;
-
-    protected McmpSoundManager sndMgr;
-
-    public boolean isPlaying;
-    public ItemStack itemPlaying;
-    public PlayPosition playPos = new PlayPosition();
+    protected McmpPortablePlayerController controller = new McmpPortablePlayerController();
 
     public boolean inInventory;
     public int timeInterval = 0;
-    public Random playerRand = new Random();
-    private boolean isControlLocked = false;
 
     private String soundPlay = null;
     private String soundStop = null;
@@ -45,9 +26,7 @@ public abstract class ItemMcmpPlayer extends Item
     public ItemMcmpPlayer()
     {
         super();
-        sndMgr = McmpSoundManager.getInstance();
         McmpPlayerManager.registerMcmpPlayer(this);
-
         setCreativeTab(CreativeTabs.tabTools);
     }
 
@@ -60,7 +39,7 @@ public abstract class ItemMcmpPlayer extends Item
         inInventory = true;
         if (world.isRemote)
         {
-            onPlayerUpdate(itemstack, world, entity, i, flag);
+            this.onPlayerUpdate(itemstack, world, entity, i, flag);
         }
     }
 
@@ -70,95 +49,26 @@ public abstract class ItemMcmpPlayer extends Item
 
     public void play(ItemStack mcmp, EntityPlayer player, ItemStack song)
     {
-        if (player.worldObj.isRemote && !isControlLocked)
-        {
-            isControlLocked = true;
-            if (playSong(song, player))
-            {
-                isPlaying = true;
-                itemPlaying = song;
-                McmpPlayerManager.setPlayingPlayer(mcmp);
-                this.dispatchPlayerCtlPacket(PKT_TYPE_PLAY);
-            }
-            isControlLocked = false;
-         }
-        onPlay(mcmp, player, song);
+        this.controller.play(player.worldObj, mcmp, player, song);
+        this.onPlay(mcmp, player, song);
     }
 
-    /**
-     * Plays a specified song.
-     */
-    protected boolean playSong(ItemStack itemstack, EntityPlayer player)
+    public void pause(ItemStack mcmp, EntityPlayer player)
     {
-        Minecraft mc = FMLClientHandler.instance().getClient();
-        Item item = itemstack.getItem();
-        String song = null;
-        String songName = null;
-        boolean isSucceeded = false;
+        this.controller.pause(player.worldObj);
+        this.onPause(mcmp, player);
+    }
 
-        if (item instanceof ItemRecord)
-        {
-            ItemRecord itemrecord = ItemRecord.getRecord("records." + ((ItemRecord)item).recordName);
-            song = itemrecord.recordName;
-            songName = itemrecord.getRecordNameLocal();
-            isSucceeded = sndMgr.playRecord(song, mc.gameSettings);
-        }
-        else if (item instanceof ItemCassetteTape)
-        {
-            MediaSongEntry songEntry = ((ItemCassetteTape) item).getSong(itemstack);
-            if (songEntry != null)
-            {
-                if (songEntry.source == ItemCassetteTape.Source.HDD)
-                {
-                    SongInfo info = sndMgr.getSongManager().getSongInfo(songEntry);
-                    if (info != null)
-                    {
-                        songName = info.songName;
-                        isSucceeded = sndMgr.playHddSong(info, mc.gameSettings);
-                    }
-                    else
-                    {
-                        player.addChatMessage(new ChatComponentTranslation("mcmp1.fileNotFound", songEntry.id));
-                    }
-
-                }
-                else if (songEntry.source == ItemCassetteTape.Source.RECORDS)
-                {
-                    song = songEntry.id;
-                    ItemRecord itemrecord = ItemRecord.getRecord("records." + song);
-                    if (itemrecord != null)
-                    {
-                        songName = itemrecord.getRecordNameLocal();
-                        isSucceeded = sndMgr.playRecord(song, mc.gameSettings);
-                    }
-                    else
-                    {
-                        player.addChatMessage(new ChatComponentTranslation("mcmp1.recordNotFound", songEntry.id));
-                    }
-                }
-            }
-        }
-
-        if (songName != null)
-        {
-            mc.ingameGUI.setRecordPlayingMessage(songName);
-        }
-        return isSucceeded;
+    public void resume(ItemStack mcmp, EntityPlayer player)
+    {
+        this.controller.resume(player.worldObj);
+        this.onResume(mcmp, player);
     }
 
     public void stop(ItemStack mcmp, EntityPlayer player)
     {
-        if (player.worldObj.isRemote && !isControlLocked)
-        {
-            isControlLocked = true;
-            isPlaying = false;
-            itemPlaying = null;
-            McmpPlayerManager.setPlayingPlayer(null);
-            this.dispatchPlayerCtlPacket(PKT_TYPE_STOP);
-            sndMgr.stop();
-            isControlLocked = false;
-        }
-        onStop(mcmp, player);
+        this.controller.stop(player.worldObj);
+        this.onStop(mcmp, player);
     }
 
     public void setNoInterval()
@@ -170,6 +80,14 @@ public abstract class ItemMcmpPlayer extends Item
     {
     }
 
+    protected void onPause(ItemStack mcmp, EntityPlayer player)
+    {
+    }
+
+    protected void onResume(ItemStack mcmp, EntityPlayer player)
+    {
+    }
+
     protected void onStop(ItemStack mcmp, EntityPlayer player)
     {
     }
@@ -177,79 +95,44 @@ public abstract class ItemMcmpPlayer extends Item
     @Override
     public void addInformation(ItemStack par1ItemStack, EntityPlayer player, List par2List, boolean flag)
     {
-        if (isPlaying)
+        if (this.isPlayerPlaying())
         {
-            par2List.add("Playing: " + getPlayingSongName(player));
+            par2List.add("Playing: " + getPlayingSongName());
         }
     }
 
-    public String getPlayingSongName(EntityPlayer player)
+    public String getPlayingSongName()
     {
-        if (itemPlaying != null)
-        {
-            return getSongName(itemPlaying, player);
-        }
-        else
-        {
-            return null;
-        }
+        return this.controller.getPlayingSongName();
     }
 
-    public static String getSongName(ItemStack itemstack, EntityPlayer player)
+    public static String getSongName(ItemStack itemstack)
     {
-        List songInfo = new ArrayList();
-        itemstack.getItem().addInformation(itemstack, player, songInfo, false);
-        return songInfo.get(0).toString();
-    }
-
-    public void readFromNBT(NBTTagCompound nbttagcompound)
-    {
-		playPos.slotPlaying = nbttagcompound.getShort("pslt");
-		playPos.playingInStack = nbttagcompound.getShort("pstk");
-    }
-
-    public void writeToNBT(NBTTagCompound nbttagcompound)
-    {
-        nbttagcompound.setShort("pslt", (short) playPos.slotPlaying);
-        nbttagcompound.setShort("pstk", (short) playPos.playingInStack);
+        return McmpPortablePlayerController.getSongName(itemstack);
     }
 
     public void loadPlayerData(ItemStack mcmp)
     {
-        NBTTagCompound stackTagCompound = mcmp.getTagCompound();
-
-        if (stackTagCompound != null)
-        {
-            readFromNBT(stackTagCompound);
-        }
+        this.controller.loadPlayerData(mcmp);
     }
 
     public void savePlayerData(ItemStack mcmp)
     {
-        if (mcmp.stackTagCompound == null)
-        {
-            mcmp.setTagCompound(new NBTTagCompound());
-        }
-
-        writeToNBT(mcmp.stackTagCompound);
+        this.controller.savePlayerData(mcmp);
     }
 
     public void updatePlayerState(ItemStack mcmp)
     {
-        this.dispatchPlayerCtlPacket(PKT_TYPE_STATE);
-        this.savePlayerData(mcmp);
+        this.controller.updatePlayerState(mcmp);
     }
 
-    protected void dispatchPlayerCtlPacket(final int type)
+    public NBTTagCompound getTagCompound(ItemStack mcmp)
     {
-        if (type == ItemMcmpPlayer.PKT_TYPE_STATE)
+        if (mcmp.getTagCompound() == null)
         {
-            PacketDispatcher.packet(new PacketMcmpPlayerCtl(type, playPos.slotPlaying, playPos.playingInStack)).sendToServer();
+            mcmp.setTagCompound(new NBTTagCompound());
         }
-        else
-        {
-            PacketDispatcher.packet(new PacketMcmpPlayerCtl(type)).sendToServer();
-        }
+        return mcmp.getTagCompound();
     }
 
     protected void sendAdditionalCtlPacketData(int type, ByteBuf dos)
@@ -280,5 +163,25 @@ public abstract class ItemMcmpPlayer extends Item
     public String getSoundOnStop()
     {
         return soundStop;
+    }
+
+    public McmpPortablePlayerController getController()
+    {
+        return this.controller;
+    }
+
+    public McmpAudioPlayer getAudioPlayer()
+    {
+        return this.controller.getAudioPlayer();
+    }
+
+    public boolean isPlayerPlaying()
+    {
+        return this.controller.isPlayerPlaying;
+    }
+
+    public void setPlayerPlaying(boolean isPlayerPlaying)
+    {
+        this.controller.isPlayerPlaying = isPlayerPlaying;
     }
 }
