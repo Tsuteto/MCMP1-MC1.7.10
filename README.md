@@ -2,7 +2,7 @@
 レコーダーで好きな音源をカセットにダビングしてプレーヤーで聴くスタイルのポータブル音楽プレーヤー。だだっ広いマインクラフトの世界、音楽を持ち歩こう。
 
 ## Distribution and Usage
-http://forum.minecraftuser.jp/viewtopic.php?f=13&t=1014
+https://tsuteto.hacca.jp/mcmods
 
 ## Dependencies
 - Forge
