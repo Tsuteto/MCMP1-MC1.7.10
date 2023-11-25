@@ -7,7 +7,7 @@ https://tsuteto.hacca.jp/mcmods
 ## Dependencies
 - Forge
 
-## Acknowledgment
+## Acknowledgments
 - MP3 decode library by javazoom's JLayer.
 - AAC decode library by in-somnia's JAAD.
 
